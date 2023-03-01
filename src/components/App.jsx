@@ -1,25 +1,69 @@
 import { Component } from 'react';
+import { nanoid } from 'nanoid';
 import { ContactForm } from './ContactForm/ContactForm';
+import { ContactList } from './ContactList/ContactList';
+import { Filter } from './Filter/Filter';
+import { Container, Header, SubHeader } from './App.styled';
 
 export class App extends Component {
   state = {
-    contacts: [],
-    name: '',
+    contacts: [
+      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+    ],
+    filter: '',
   };
+
+  addContact = contact => {
+    if (
+      this.state.contacts.some(
+        item => item.name.toLowerCase() === contact.name.toLowerCase()
+      )
+    ) {
+      return alert(`${contact.name} is already in contacts`);
+    } else {
+      contact.id = nanoid();
+      this.setState(prevState => ({
+        contacts: [contact, ...prevState.contacts],
+      }));
+    }
+  };
+
+  onDeleteContact = id => {
+    this.setState(prevState => ({
+      contacts: prevState.contacts.filter(contact => contact.id !== id),
+    }));
+  };
+
+  onSearhContact = () => {
+    const { filter, contacts } = this.state;
+    const normalizedFilter = filter.toLowerCase();
+
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(normalizedFilter)
+    );
+  };
+  onUpdateSearhContact = e => {
+    this.setState({ filter: e.target.value });
+  };
+
   render() {
+    const { contacts, filter } = this.state;
+    const visible = this.onSearhContact(contacts, filter);
     return (
-      <div
-        style={{
-          height: '100vh',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          fontSize: 40,
-          color: '#010101',
-        }}
-      >
-        <ContactForm />
-      </div>
+      <Container>
+        <Header>Phonebook</Header>
+        <ContactForm onSubmit={this.addContact} />
+        <SubHeader>Contacts</SubHeader>
+        <Filter value={filter} onChange={this.onUpdateSearhContact} />
+        <ContactList
+          contacts={contacts}
+          onDelete={this.onDeleteContact}
+          onFilteredContact={visible}
+        />
+      </Container>
     );
   }
 }
